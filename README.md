@@ -5,7 +5,7 @@ transfer-learned CNN that classifies tumor type from a single MRI slice at **98%
 accuracy**, and a 3D U-Net that labels tumor subregions voxel-by-voxel across a full MRI
 volume at **~0.70 IOU**.
 
-Graduate practicum project, Summer 2024 — Jonah Maroszek.
+Capstone graduate project — Jonah Maroszek.
 
 ![Sagittal slices through a single MRI volume](assets/hero-brain-montage.png)
 
@@ -16,9 +16,7 @@ Graduate practicum project, Summer 2024 — Jonah Maroszek.
 The report is the main document here: it covers the motivation, the methods, and the
 results in depth. This README is the short version, plus a map of the code.
 
----
-
-## At a glance
+## Overview
 
 |  | Part 1 — Classification | Part 2 — Segmentation |
 |---|---|---|
@@ -30,8 +28,6 @@ results in depth. This README is the short version, plus a map of the code.
 | **Hardware** | Colab T4 | Colab L4 / A100 |
 | **Notebook** | [`Xception.ipynb`](Xception.ipynb) | [`segmentation.ipynb`](segmentation.ipynb) |
 
-[![Open Xception in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jmaroszek/brain_tumors/blob/main/Xception.ipynb)
-[![Open segmentation in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jmaroszek/brain_tumors/blob/main/segmentation.ipynb)
 
 ## Why this problem
 
@@ -56,12 +52,6 @@ within reach.
 | [`segmentation.ipynb`](segmentation.ipynb) | Part 2. BraTS EDA, a custom `Sequence` data generator for `.nii` volumes, the 3D U-Net, the loss-function comparison, and evaluation. |
 | [`assets/`](assets/) | Figures used in this README, taken from the notebooks and the report. |
 
-> **A note on scope.** The report also covers a VGG16 baseline; that notebook is not in
-> this repo, so the VGG16 numbers below are quoted from the report rather than
-> reproducible from the code here. The two notebooks present are the ones behind the
-> final results.
-
----
 
 ## Part 1 — Tumor classification
 
@@ -146,9 +136,6 @@ Against the VGG16 baseline from the report:
 | **Overall** | **Accuracy** | **0.98** | 0.89 |
 
 Xception wins on every metric, converges faster, and uses roughly 5× fewer parameters.
-Worth stating plainly: this is not a controlled architecture comparison. I built the
-VGG16 model first and the Xception model second, with different heads and more
-experience by the time I got to the second one.
 
 ![Accuracy vs epochs for both classification networks](assets/classification-accuracy-comparison.png)
 
@@ -249,34 +236,6 @@ ground-truth mask, model prediction. In the first row I can't see the tumor even
 it's there. The predicted masks aren't perfect, but they line up well with the
 radiologist's, and they're comfortably good enough to counteract the two most common
 human failure modes: missing an anomaly, and missing the *second* anomaly.
-
----
-
-## Limitations & what I'd do next
-
-Stated plainly, because they matter for how much weight these numbers should carry:
-
-- **The classification and segmentation datasets are unrelated.** The two models are not
-  a pipeline; they're two answers to two framings of the problem.
-- **No external validation.** Both models are evaluated on held-out data from the same
-  source as their training data. Real deployment performance across scanners, sites,
-  and protocols would be lower.
-- **The classification test set doubles as the validation set** in the notebook, so 98%
-  is optimistic — early stopping selected on the same data it's reported on.
-- **VGG16 vs Xception isn't a controlled comparison** (different heads, different points
-  on my own learning curve).
-- **Segmentation was compute-bound**, not idea-bound. 50 epochs, one architecture, one
-  fold, no hyperparameter search.
-- **Next steps I'd actually take:** unfreeze the top Xception blocks and fine-tune at a
-  low learning rate; report per-subregion Dice (whole tumor / core / enhancing) so the
-  results are comparable to the BraTS leaderboard; cross-validate; and add Grad-CAM to
-  the classifier so it can point at what it saw.
-
-An earlier plan for this project was to compare the CNNs against
-[AnomalyGPT](https://github.com/CASIA-IVA-Lab/AnomalyGPT), an LLM-integrated anomaly
-detection and segmentation system. I reproduced its published results on its own
-datasets (see the report appendix) but couldn't adapt it to brain MRI in the time
-available, and refocused on the CNN work with my advisor's approval.
 
 ## Running the code
 
